@@ -123,12 +123,12 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
         toint = [int(i) for i in listclass]
         # print(f"this is img first: {img.cpu().numpy()}")
         # print(f"this is img first type: {type(img.cpu().numpy())}")
-        border_size=150
+        border_size=125
         border_text_color=[255,255,255]
         img = cv2.copyMakeBorder(filename, border_size,0,0,0, cv2.BORDER_CONSTANT) 
         person =toint.count(0)
-        text = "personCount: {} ".format(person) 
-        cv2.putText(img ,text , (0, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)
+        # text = "personCount: {} ".format(person) 
+        # cv2.putText(img ,text , (0, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)
         colors = ['green']*len(coord[:, :4])
         lineCount = 0          
         for i in range(len(coord[:, :4])):
@@ -142,8 +142,8 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
                         colors[j] = 'red'
                         img = cv2.line(img, (int(x1)-add_width, int(y1)+border_size-5-add_height), (int(x2)-add_width, int(y2)+border_size-add_height), (0, 0, 255), 2) #都是以BGR表示，不是RGB
 
-        text="redLine: {} ".format(lineCount) 
-        cv2.putText(img ,text , (300, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)            
+        # text="redLine: {} ".format(lineCount) 
+        # cv2.putText(img ,text , (250, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)            
         for i, (x1, y1, x2, y2, c1, label) in enumerate(coord):
             
             # Draw the boxes   
@@ -158,7 +158,52 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
             img = cv2.putText(img, text, (int(x1)-add_width, int(y1)+border_size-5-add_height), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 1) 
             #img = cv2.putText(img, text, (int(x1), int(y1)+border_size-5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 1) 
         #Add top-border to frame to display stats
+        #多少違反社交距離的紅線 #也許之後不用 可以刪除
+        text="MaskCount:  "
+        cv2.putText(img ,text , (425, int(border_size-10)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2) 
 
+        #多少違反社交距離的紅線 #也許之後不用 可以刪除
+        text="NoMaskCount:  "
+        cv2.putText(img ,text , (425, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2) 
+
+        #多少違反社交距離的紅線 #也許之後不用 可以刪除
+        text="redLine: {} ".format(lineCount) 
+        cv2.putText(img ,text , (425, int(border_size-90)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)         
+        
+        #口罩配戴比率  #尚未有比率計算
+        text="mask wearing rate   :  "
+        cv2.putText(img ,text , (0, int(border_size-90)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)        
+        
+        #口罩配戴警告
+        text="mask status         :  "
+        cv2.putText(img ,text , (0, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)
+        if lineCount >=3: #社交距離 警告 ，條件待改良 ，text擺放位置要再重新設計
+            text = "Danger !"
+            cv2.putText(img,text, (300, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[26,13,247], 2)
+            
+        elif 3> lineCount >=1:
+            text = "Warning !"
+            cv2.putText(img,text, (300, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[0,255,255], 2)
+
+        else:
+            text = "Safe "
+            cv2.putText(img,text, (300, int(border_size-50)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[0,255,0], 2)
+        
+        #社交距離警告
+        
+        text="social distance status:  "
+        cv2.putText(img ,text , (0, int(border_size-10)), cv2.FONT_HERSHEY_SIMPLEX,0.8,border_text_color, 2)
+        if lineCount >=3: #條件待改良 ，text擺放位置要再重新設計
+            text = "Danger !"
+            cv2.putText(img,text, (300, int(border_size-10)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[26,13,247], 2)
+            
+        elif 3> lineCount >=1:
+            text = "Warning !"
+            cv2.putText(img,text, (300, int(border_size-10)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[0,255,255], 2)
+
+        else:
+            text = "Safe "
+            cv2.putText(img,text, (300, int(border_size-10)), cv2.FONT_HERSHEY_SIMPLEX,0.8,[0,255,0], 2)
 
         return img
     detlist=[]
@@ -197,6 +242,7 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
         # Apply Classifier
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
+            print("哈哈這裡也在執行 想不到吧")
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
@@ -219,72 +265,76 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
             s += '%gx%g ' % img.shape[2:]  # print string
             # print(f"this is first s: {s}") 
             get_s = s
-            # print(f"this is img shape: {img.shape[2:]}")
-            # print(f"this is img shape: {type(img.shape[2:])}")
-            # print(f"this is img shape: {img.shape[2:].tolist()}")
-            gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
-            imc = im0.copy() if save_crop else im0  # for save_crop
-            if len(det):
-                # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-                # print(f"this is det: {type(det[:, :4])}")
-                # Print results
-                for c in det[:, -1].unique():
-                    n = (det[:, -1] == c).sum()  # detections per class
-                    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                    # print(f"this is n: {n}")   
-                    # print(f"this is s in for: {s}")   
+    #         # print(f"this is img shape: {img.shape[2:]}")
+    #         # print(f"this is img shape: {type(img.shape[2:])}")
+    #         # print(f"this is img shape: {img.shape[2:].tolist()}")
+    #         gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+    #         imc = im0.copy() if save_crop else im0  # for save_crop
+    #         if len(det):
+    #             # Rescale boxes from img_size to im0 size
+    #             det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
+    #             # print(f"this is det: {type(det[:, :4])}")
+    #             # Print results
+    #             for c in det[:, -1].unique():
+    #                 n = (det[:, -1] == c).sum()  # detections per class
+    #                 s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+    #                 # print(f"this is n: {n}")   
+    #                 # print(f"this is s in for: {s}")   
 
-                # Write results
-                for *xyxy, conf, cls in reversed(det):
-                    if save_txt:  # Write to file
-                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        print(f"this is xywh: {xywh}")   
-                        line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
-                        print(f"this is line : {line}")   
-                        with open(txt_path + '.txt', 'a') as f:
-                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
-                    # print(f"this is conf: {conf}") 
-                    if save_img or save_crop or view_img:  # Add bbox to image
-                        c = int(cls)  # integer class
-                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
-                        if save_crop:
-                            save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+    #             # Write results
+    #             for *xyxy, conf, cls in reversed(det):
+    #                 if save_txt:  # Write to file
+    #                     xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+    #                     print(f"this is xywh: {xywh}")   
+    #                     line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+    #                     print(f"this is line : {line}")   
+    #                     with open(txt_path + '.txt', 'a') as f:
+    #                         f.write(('%g ' * len(line)).rstrip() % line + '\n')
+    #                 # print(f"this is conf: {conf}") 
+    #                 if save_img or save_crop or view_img:  # Add bbox to image
+    #                     c = int(cls)  # integer class
+    #                     label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+    #                     plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
+    #                     if save_crop:
+    #                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
-            # Print time (inference + NMS)
-            print(f'{s}Done. ({t2 - t1:.3f}s)')
+    #         # Print time (inference + NMS)
+    #         print(f'{s}Done. ({t2 - t1:.3f}s)')
 
-            # Stream results
-            if view_img:
-                cv2.imshow(str(p), im0)
-                cv2.waitKey(1)  # 1 millisecond
+    #         # Stream results
+    #         if view_img:
+    #             cv2.imshow(str(p), im0)
+    #             cv2.waitKey(1)  # 1 millisecond
 
-            # Save results (image with detections)
-            if save_img:
-                if dataset.mode == 'image':
-                    cv2.imwrite(save_path, im0)
-                else:  # 'video' or 'stream'
-                    if vid_path != save_path:  # new video
-                        vid_path = save_path
-                        if isinstance(vid_writer, cv2.VideoWriter):
-                            vid_writer.release()  # release previous video writer
-                        if vid_cap:  # video
-                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                        else:  # stream
-                            fps, w, h = 30, im0.shape[1], im0.shape[0]
-                            save_path += '.mp4'
-                        vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                    vid_writer.write(im0)
-    
-    if save_txt or save_img:
-        s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-        print(f"Results saved to {save_dir}{s}")
+    #         # Save results (image with detections)
+    #         if save_img:
+    #             if dataset.mode == 'image':
+    #                 cv2.imwrite(save_path, im0)
+    #             else:  # 'video' or 'stream'
+    #                 if vid_path != save_path:  # new video
+    #                     vid_path = save_path
+    #                     if isinstance(vid_writer, cv2.VideoWriter):
+    #                         vid_writer.release()  # release previous video writer
+    #                     if vid_cap:  # video
+    #                         fps = vid_cap.get(cv2.CAP_PROP_FPS)
+    #                         w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    #                         h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    #                     else:  # stream
+    #                         fps, w, h = 30, im0.shape[1], im0.shape[0]
+    #                         save_path += '.mp4'
+    #                     vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+    #                 vid_writer.write(im0)
+    # print(f"this is first save_txt: {bool(save_txt)}")
+    # print(f"this is first view_img: {bool(view_img)}") 
+    # if save_txt or save_img:
+    #     s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
+    #     print(f"Results saved to {save_dir}{s}")
+    #     print("你怎麼可能會執行")  #結論 明明都是false 但還是執行了 s
+    #     print(f"this is after save_txt: {bool(save_txt)}")
+    #     print(f"this is after view_img: {bool(view_img)}") 
 
-    if update:
-        strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
+    # if update:
+    #     strip_optimizer(weights)  # update model (to fix SourceChangeWarning)
 
     print(f'Done. ({time.time() - t0:.3f}s)')
     #print(f"this is all detlist: {detlist}")
@@ -293,19 +343,20 @@ def run(weights='yolov5s.pt',  # model.pt path(s)
     # print(f"this is save_crop: {bool(save_crop)}") 
     # print(f"this is view_img: {bool(view_img)}") 
 
-    # print(f"this is get s: {get_s}")
+    print(f"this is get s: {get_s}")
     # print(f"this is get s type: {type(get_s)}")
     #it's time 看 這 邊
     def detect_people_on_video(filename, confidence, distance=60):
         get_wh = get_s.split("x") #[height, width]]
         cap = cv2.VideoCapture(source)    
-        border_size=150
+        border_size=125
         fps = cap.get(cv2.CAP_PROP_FPS)
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         add_height = int(get_wh[0]) - height
         add_width = int(get_wh[1]) - width
         print(f"this is add_height: {add_height}") 
+        print(f"this is add_width: {add_width}")
         print(f"this is width: {width}") 
         print(f"this is height: {height}") 
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -370,7 +421,7 @@ def parse_opt():
 
 
 def main(opt):
-    print(colorstr('detect: ') + ', '.join(f'{k}={v}' for k, v in vars(opt).items()))
+    print(colorstr('是我啦哈哈detect: ') + ', '.join(f'{k}={v}' for k, v in vars(opt).items()))
     check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
 
